@@ -8,9 +8,13 @@ import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.mygdx.gravityball.GameObjects.Border;
 import com.mygdx.gravityball.GameObjects.Player;
+import com.mygdx.gravityball.GameObjects.SpikeGroup;
+
+import java.util.ArrayList;
 
 public class GameScreen implements Screen, InputProcessor {
 
@@ -26,8 +30,12 @@ public class GameScreen implements Screen, InputProcessor {
 
     private Player player;
 
-    private Border borderLeft;
-    private Border borderRight;
+    private Border borderLeft1;
+    private Border borderLeft2;
+    private Border borderRight1;
+    private Border borderRight2;
+
+    private ArrayList<SpikeGroup> spikeGroups = new ArrayList<SpikeGroup>();
 
     private Vector2 gravity = new Vector2(100,0);
 
@@ -47,8 +55,10 @@ public class GameScreen implements Screen, InputProcessor {
         world.setVelocityThreshold(0f);
 
         player = new Player(WORLD_WIDTH/2,PLAYER_FLOATING_HEIGHT,5, world); //TODO: set height dynamicly
-        borderLeft = new Border(world,new Vector2(0,0),new Vector2(5,WORLD_HEIGHT*3));
-        borderRight = new Border(world,new Vector2(WORLD_WIDTH-5,0),new Vector2(5,WORLD_HEIGHT*3));
+        borderLeft1 = new Border(world,new Vector2(0,0),new Vector2(5,WORLD_HEIGHT*3));
+        borderRight1 = new Border(world,new Vector2(WORLD_WIDTH-5,0),new Vector2(5,WORLD_HEIGHT*3));
+        borderLeft2 = new Border(world,new Vector2(0,borderLeft1.getDim().y),new Vector2(5,WORLD_HEIGHT*3));
+        borderRight2 = new Border(world,new Vector2(WORLD_WIDTH-5,borderRight1.getDim().y),new Vector2(5,WORLD_HEIGHT*3));
 
     }
 
@@ -64,8 +74,10 @@ public class GameScreen implements Screen, InputProcessor {
 
         shapeRenderer.setColor(1,1,1,1);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-        borderLeft.draw(shapeRenderer);
-        borderRight.draw(shapeRenderer);
+        borderLeft1.draw(shapeRenderer);
+        borderRight1.draw(shapeRenderer);
+        borderLeft2.draw(shapeRenderer);
+        borderRight2.draw(shapeRenderer);
         player.draw(shapeRenderer);
         shapeRenderer.end();
     }
@@ -76,6 +88,18 @@ public class GameScreen implements Screen, InputProcessor {
         camera.position.y = player.getPos().y+PLAYER_FLOATING_HEIGHT;
         camera.update();
         shapeRenderer.setProjectionMatrix(camera.combined);
+        setBorderUp();
+    }
+
+    private void setBorderUp(){
+        if(borderLeft1.getPos().y < viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2)
+            borderLeft1.setPosUp();
+        if(borderLeft2.getPos().y < viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2)
+            borderLeft2.setPosUp();
+        if(borderRight1.getPos().y < viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2)
+            borderRight1.setPosUp();
+        if(borderRight2.getPos().y < viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2)
+            borderRight2.setPosUp();
     }
 
     @Override

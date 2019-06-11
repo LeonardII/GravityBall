@@ -1,62 +1,48 @@
 package com.mygdx.gravityball.GameObjects;
 
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
-import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
 import com.badlogic.gdx.physics.box2d.PolygonShape;
 import com.badlogic.gdx.physics.box2d.World;
 
-public class Border {
-    //idee: sehr leichte hügel und täler um es dynamischer zu machen
+public class Spike {
+    Vector2 pos;
+    float height; //pos if left, and negative if right
+    final static float WIDTH_Y = 50;
 
     private Body body;
-    private Vector2 pos;
-    private Vector2 dim;
 
-    public Border(World world,Vector2 pos, Vector2 dim){
-        this.pos = pos;
-        this.dim = dim;
+    public Spike(float x, float y, float height, World world) {
+        this.pos = new Vector2(x,y);
+        this.height = height;
         createBox2d(world);
     }
 
-    public void draw(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(1,1,1,1);
-        shapeRenderer.rect(pos.x, pos.y, dim.x, dim.y);
+    public void draw(ShapeRenderer renderer){
+        renderer.setColor(Color.WHITE);
+        renderer.triangle(pos.x, pos.y-WIDTH_Y/2, pos.x,pos.y+WIDTH_Y/2, pos.x+height, pos.y);
     }
-
-
     public void createBox2d(World world){
         BodyDef boxDef = new BodyDef();
         boxDef.type = BodyDef.BodyType.StaticBody;
-        boxDef.position.set(pos.x+dim.x/2,pos.y+dim.y/2);
+        boxDef.position.set(pos.x,pos.y);
         body = world.createBody(boxDef);
 
-        PolygonShape groundBox = new PolygonShape();
-        groundBox.setAsBox(dim.x/2, dim.y/2);
+        PolygonShape polygonShape = new PolygonShape();
+        polygonShape.set(new Vector2[]{ new Vector2(pos.x, pos.y-WIDTH_Y/2), new Vector2(pos.x,pos.y+WIDTH_Y/2), new Vector2(pos.x+height, pos.y)});
 
         FixtureDef boxFix = new FixtureDef();
-        boxFix.shape = groundBox;
+        boxFix.shape = polygonShape;
         boxFix.density = 1f;
         boxFix.restitution = 0f;
         boxFix.friction = 0f;
 
         Fixture fixture = body.createFixture(boxFix);
-        groundBox.dispose();
-    }
-
-    public void setPosUp(){
-        pos.y += dim.y;
-    }
-
-    public Vector2 getDim() {
-        return dim;
-    }
-
-    public Vector2 getPos() {
-        return pos;
+        polygonShape.dispose();
     }
 }
