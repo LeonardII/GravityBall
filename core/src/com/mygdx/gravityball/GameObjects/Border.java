@@ -20,6 +20,7 @@ public class Border {
     public Border(World world,Vector2 pos, Vector2 dim){
         this.pos = pos;
         this.dim = dim;
+        this.dim.y *= -1;
         createBox2d(world);
     }
 
@@ -58,5 +59,9 @@ public class Border {
 
     public Vector2 getPos() {
         return pos;
+    }
+
+    public void setY(float bottom) {
+        pos.y = bottom;
     }
 }

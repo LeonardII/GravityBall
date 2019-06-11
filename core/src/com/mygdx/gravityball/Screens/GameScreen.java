@@ -31,9 +31,7 @@ public class GameScreen implements Screen, InputProcessor {
     private Player player;
 
     private Border borderLeft1;
-    private Border borderLeft2;
     private Border borderRight1;
-    private Border borderRight2;
 
     private ArrayList<SpikeGroup> spikeGroups = new ArrayList<SpikeGroup>();
 
@@ -45,7 +43,7 @@ public class GameScreen implements Screen, InputProcessor {
         Gdx.input.setInputProcessor(this);
         shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();
-        camera.setToOrtho(false);
+        camera.setToOrtho(true);
         viewport=new ExtendViewport(WORLD_WIDTH,WORLD_HEIGHT, camera);
         viewport.apply();
         camera.position.set(camera.viewportWidth / 2, camera.viewportHeight / 2, 0);
@@ -57,9 +55,6 @@ public class GameScreen implements Screen, InputProcessor {
         player = new Player(WORLD_WIDTH/2,PLAYER_FLOATING_HEIGHT,5, world); //TODO: set height dynamicly
         borderLeft1 = new Border(world,new Vector2(0,0),new Vector2(5,WORLD_HEIGHT*3));
         borderRight1 = new Border(world,new Vector2(WORLD_WIDTH-5,0),new Vector2(5,WORLD_HEIGHT*3));
-        borderLeft2 = new Border(world,new Vector2(0,borderLeft1.getDim().y),new Vector2(5,WORLD_HEIGHT*3));
-        borderRight2 = new Border(world,new Vector2(WORLD_WIDTH-5,borderRight1.getDim().y),new Vector2(5,WORLD_HEIGHT*3));
-
     }
 
     @Override
@@ -76,8 +71,6 @@ public class GameScreen implements Screen, InputProcessor {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
         borderLeft1.draw(shapeRenderer);
         borderRight1.draw(shapeRenderer);
-        borderLeft2.draw(shapeRenderer);
-        borderRight2.draw(shapeRenderer);
         player.draw(shapeRenderer);
         shapeRenderer.end();
     }
@@ -92,14 +85,10 @@ public class GameScreen implements Screen, InputProcessor {
     }
 
     private void setBorderUp(){
-        if(borderLeft1.getPos().y < viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2)
-            borderLeft1.setPosUp();
-        if(borderLeft2.getPos().y < viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2)
-            borderLeft2.setPosUp();
-        if(borderRight1.getPos().y < viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2)
-            borderRight1.setPosUp();
-        if(borderRight2.getPos().y < viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2)
-            borderRight2.setPosUp();
+
+        float bottom = viewport.getCamera().position.y-viewport.getMaxWorldHeight()/2;
+        borderLeft1.setY(bottom);
+        borderRight1.setY(bottom);
     }
 
     @Override
