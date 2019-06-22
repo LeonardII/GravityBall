@@ -1,5 +1,6 @@
 package com.mygdx.gravityball.Screens;
 
+import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
@@ -18,6 +19,7 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.mygdx.gravityball.GameObjects.Border;
 import com.mygdx.gravityball.GameObjects.Player;
+import com.mygdx.gravityball.GameObjects.Spike;
 import com.mygdx.gravityball.GameObjects.SpikeGroup;
 import com.mygdx.gravityball.Scenes.Hud;
 
@@ -44,13 +46,14 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     private boolean bordering = false;
 
     private float score = 0;
+    private float maxSpeed = 20;
 
     private Border borderLeft;
     private Border borderRight;
 
     private ArrayList<SpikeGroup> spikeGroups = new ArrayList<SpikeGroup>();
 
-    private Vector2 gravity = new Vector2(40,0);
+    private Vector2 gravity = new Vector2(0,0);
 
 
     @Override
@@ -102,8 +105,29 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
     private void update(float delta){
         score = player.getPos().y - PLAYER_FLOATING_HEIGHT;
+        maxSpeed = 40-5000/(score+200);
+        Vector2 dir = player.getVelocity();
+        dir.scl(-1);
+        Vector2 vel = new Vector2(dir);
+        dir.setLength(0.4f);
+        vel.scl(0.035f);
+        vel.add(dir);
+
+        vel.scl(1,0.6f);
+
+        //Drag Player
+        player.applyForce(vel);
+        //Gravity
+        if(player.isGoLeft()){
+            player.applyForce( new Vector2(-5f,0).scl(vel.len()));
+        }else {
+            player.applyForce(new Vector2(5f, 0).scl(vel.len()));
+        }
+
         hud.setScore(score);
-        if(bordering) player.applyForce(new Vector2(0,Math.abs(6/(player.getVelocity().y -1))));
+
+        if(bordering) player.applyForce(new Vector2(0,Math.abs(maxSpeed/(player.getVelocity().y +1))));
+        if(player.getVelocity().len() < 0.5f) lost();
 
         world.step(delta,6,2);
         setBorderUp();
@@ -126,11 +150,11 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     }
 
     //TODO: must not depend on time, instead on length
-    private float spacingMeters = 100f;
+    private float spacingMeters = 30f;
     private float lastSpikes = 0;
     private void spikeSpawn(){
         if(score-lastSpikes > spacingMeters){
-            int number = MathUtils.random(5,15);
+            int number = MathUtils.random(1,15);
             Vector2 bottomPos;
             boolean left;
             if(MathUtils.random(1)==1){
@@ -144,6 +168,11 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
             spacingMeters *=0.99f;
             lastSpikes = score;
         }
+    }
+
+    private void lost(){
+
+        ((Game)Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) score));
     }
 
     @Override
@@ -190,8 +219,8 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-        world.setGravity(world.getGravity().scl(-1));
-        //player.applyForce(world.getGravity().scl(100));
+        //world.setGravity(world.getGravity().scl(-1));
+        player.setGoLeft(!player.isGoLeft());
         return false;
     }
 
@@ -221,6 +250,10 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         Object b = contact.getFixtureB().getBody().getUserData();
         if((a instanceof Player && b instanceof Border) || (b instanceof Player && a instanceof Border)){
             bordering = true;
+        }
+
+        if((a instanceof Player && b instanceof Spike) || (b instanceof Player && a instanceof Spike)){
+            lost();
         }
     }
 

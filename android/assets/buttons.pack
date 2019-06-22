@@ -1,0 +1,24 @@
+
+buttons.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+plusButton
+  rotate: false
+  xy: 1, 1
+  size: 800, 800
+  orig: 800, 800
+  offset: 0, 0
+  index: -1
+
+buttons2.png
+format: RGBA8888
+filter: Nearest,Nearest
+repeat: none
+playButton
+  rotate: false
+  xy: 1, 1
+  size: 500, 500
+  orig: 500, 500
+  offset: 0, 0
+  index: -1

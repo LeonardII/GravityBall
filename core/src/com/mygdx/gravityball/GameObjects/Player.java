@@ -2,6 +2,7 @@ package com.mygdx.gravityball.GameObjects;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
 import com.badlogic.gdx.physics.box2d.BodyDef;
@@ -18,6 +19,8 @@ public class Player {
     private Vector2 pos;
 
     private Body body;
+
+    private boolean goLeft = false;
 
     public Player(float x, float y, float radius, World world){
         pos = new Vector2(x, y);
@@ -37,14 +40,15 @@ public class Player {
 
         FixtureDef playerFix = new FixtureDef();
         playerFix.shape = playerShape;
-        playerFix.density = 1f;
-        playerFix.restitution = 0.2f;
+        playerFix.density = 0.15f;
+        playerFix.restitution = 0f;//0.2f;
         playerFix.friction = 0f;
 
         Fixture fixture = body.createFixture(playerFix);
         playerShape.dispose();
 
         body.setLinearVelocity(new Vector2(0,20));
+
         return body;
     }
 
@@ -57,6 +61,7 @@ public class Player {
     public void syncSpriteToBody(){
         pos.set(body.getPosition());
     }
+
 
     public Vector2 getPos(){
         return pos;
@@ -77,4 +82,13 @@ public class Player {
     public Vector2 getVelocity() {
         return body.getLinearVelocity();
     }
+
+    public boolean isGoLeft() {
+        return goLeft;
+    }
+
+    public void setGoLeft(boolean goLeft) {
+        this.goLeft = goLeft;
+    }
+
 }
