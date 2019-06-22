@@ -1,5 +1,6 @@
 package com.mygdx.gravityball.GameObjects;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Body;
@@ -29,20 +30,21 @@ public class Player {
         playerDef.type = BodyDef.BodyType.DynamicBody;
         playerDef.position.set(pos);
         body = world.createBody(playerDef);
+        body.setUserData(this);
 
         CircleShape playerShape = new CircleShape();
         playerShape.setRadius(radius);
 
         FixtureDef playerFix = new FixtureDef();
         playerFix.shape = playerShape;
-        playerFix.density = 5f;
+        playerFix.density = 1f;
         playerFix.restitution = 0.2f;
         playerFix.friction = 0f;
 
         Fixture fixture = body.createFixture(playerFix);
         playerShape.dispose();
 
-        body.setLinearVelocity(new Vector2(0,10));
+        body.setLinearVelocity(new Vector2(0,20));
         return body;
     }
 
@@ -68,6 +70,11 @@ public class Player {
         return radius;
     }
     public void applyForce(Vector2 f){
+        Gdx.app.log("Contact2",f.toString());
         body.applyForceToCenter(f,true);
+    }
+
+    public Vector2 getVelocity() {
+        return body.getLinearVelocity();
     }
 }

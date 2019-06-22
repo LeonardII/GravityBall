@@ -20,7 +20,7 @@ public class Border {
     public Border(World world,Vector2 pos, Vector2 dim){
         this.pos = pos;
         this.dim = dim;
-        this.dim.y *= -1;
+        //this.dim.y *= -1;
         createBox2d(world);
     }
 
@@ -32,9 +32,10 @@ public class Border {
 
     public void createBox2d(World world){
         BodyDef boxDef = new BodyDef();
-        boxDef.type = BodyDef.BodyType.StaticBody;
+        boxDef.type = BodyDef.BodyType.KinematicBody;
         boxDef.position.set(pos.x+dim.x/2,pos.y+dim.y/2);
         body = world.createBody(boxDef);
+        body.setUserData(this);
 
         PolygonShape groundBox = new PolygonShape();
         groundBox.setAsBox(dim.x/2, dim.y/2);
@@ -61,7 +62,14 @@ public class Border {
         return pos;
     }
 
-    public void setY(float bottom) {
-        pos.y = bottom;
+    public void syncSpriteToBody(){
+        Vector2 b = body.getPosition();
+        b.add(-dim.x/2,-dim.y/2);
+        pos.set(b);
+    }
+
+    public void setVel(Vector2 vel) {
+        body.setLinearVelocity(vel);
+
     }
 }

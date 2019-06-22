@@ -10,11 +10,14 @@ import sun.security.provider.ConfigFile;
 public class SpikeGroup {
     private Spike[] spikes;
 
-    public SpikeGroup(int numberOfSpikes, Vector2 bottomPos, int left, World world){
+    public SpikeGroup(int numberOfSpikes, Vector2 bottomPos, boolean left, World world){
         spikes = new Spike[numberOfSpikes];
 
         for (int i = 0; i < spikes.length; i++) {
-            spikes[i] = new Spike(bottomPos.y,bottomPos.y+Spike.WIDTH_Y/2 + i*Spike.WIDTH_Y,MathUtils.random(50*left,300*left),world);
+            float height;
+            if (left) height = MathUtils.random(0.5f,3f);
+            else height = MathUtils.random(-3f,-0.5f);
+            spikes[i] = new Spike(bottomPos.x,bottomPos.y+Spike.WIDTH_Y/2 + i*Spike.WIDTH_Y,height,world);
         }
     }
 
@@ -23,6 +26,4 @@ public class SpikeGroup {
             s.draw(renderer);
         }
     }
-
-
 }
