@@ -7,9 +7,11 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.utils.viewport.FitViewport;
+import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 import com.mygdx.gravityball.Screens.GameScreen;
 
@@ -18,24 +20,36 @@ public class Hud {
     public Stage stage;
     private Viewport viewport;
 
-    private float score;
+    private int score;
     Label scoreLabel;
 
     public Hud(SpriteBatch batch){
         score = 0;
-        viewport = new FitViewport(GameScreen.WORLD_WIDTH,GameScreen.WORLD_HEIGHT, new OrthographicCamera());
+        viewport = new ScreenViewport(new OrthographicCamera());
         stage = new Stage(viewport,batch);
 
+        /*FreeTypeFontGenerator gen = new FreeTypeFontGenerator(Gdx.files.internal("ostrich-regular.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter params = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        params.size = 100;
+        BitmapFont font = gen.generateFont(params);
+        gen.dispose();*/
+
         BitmapFont font = new BitmapFont();
-        font.getRegion().getTexture().setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
-        font.getData().setScale(0.1f);
-        scoreLabel = new Label(String.valueOf(score),new Label.LabelStyle(font, Color.WHITE));
-        scoreLabel.setPosition(GameScreen.WORLD_WIDTH/2-scoreLabel.getWidth()/2,viewport.getWorldHeight()-1.5f);
+
+        scoreLabel = new Label(String.format("%.1f",score),new Label.LabelStyle(font, Color.WHITE));
+        scoreLabel.setPosition(viewport.getWorldWidth()/2-scoreLabel.getWidth()/2,viewport.getWorldHeight()-scoreLabel.getHeight());
         stage.addActor(scoreLabel);
+        stage.getViewport().apply();
     }
 
-    public void setScore(float score) {
+    public void update() {
+
+        stage.act();
+        scoreLabel.setText(String.format("%.2f",score));
+        stage.draw();
+    }
+
+    public void setScore(int score) {
         this.score = score;
-        Gdx.app.log("lol",""+score);
     }
 }

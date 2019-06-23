@@ -6,7 +6,6 @@ import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.MathUtils;
@@ -104,7 +103,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     }
 
     private void update(float delta){
-        score = player.getPos().y - PLAYER_FLOATING_HEIGHT;
+        score = (player.getPos().y - PLAYER_FLOATING_HEIGHT);
         maxSpeed = 40-5000/(score+200);
         Vector2 dir = player.getVelocity();
         dir.scl(-1);
@@ -125,6 +124,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         }
 
         hud.setScore(score);
+        hud.update();
 
         if(bordering) player.applyForce(new Vector2(0,Math.abs(maxSpeed/(player.getVelocity().y +1))));
         if(player.getVelocity().len() < 0.5f) lost();
