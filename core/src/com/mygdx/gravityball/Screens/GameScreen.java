@@ -72,7 +72,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         world.setVelocityThreshold(0f);
         world.setContactListener(this);
 
-        player = new Player(WORLD_WIDTH/2,PLAYER_FLOATING_HEIGHT,0.4f, world); //TODO: set height dynamicly
+        player = new Player(WORLD_WIDTH/2,PLAYER_FLOATING_HEIGHT,0.4f, world); //TODO: set height dynamicaly
         borderLeft = new Border(world,new Vector2(0,WORLD_BOTTOM),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*3));
         borderRight = new Border(world,new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_BOTTOM),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*3));
 
@@ -123,11 +123,11 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
             player.applyForce(new Vector2(5f, 0).scl(vel.len()));
         }
 
-        hud.setScore(score);
+        hud.setScore((int)score);
         hud.update();
 
         if(bordering) player.applyForce(new Vector2(0,Math.abs(maxSpeed/(player.getVelocity().y +1))));
-        if(player.getVelocity().len() < 0.5f) lost();
+        //if(player.getVelocity().len() < 0.5f) lost();
 
         world.step(delta,6,2);
         setBorderUp();
@@ -150,11 +150,11 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     }
 
     //TODO: must not depend on time, instead on length
-    private float spacingMeters = 30f;
+    private float spacingMeters = 10f;
     private float lastSpikes = 0;
     private void spikeSpawn(){
         if(score-lastSpikes > spacingMeters){
-            int number = MathUtils.random(1,15);
+            int number = MathUtils.random(1,5);
             Vector2 bottomPos;
             boolean left;
             if(MathUtils.random(1)==1){
@@ -220,6 +220,9 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     @Override
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
         //world.setGravity(world.getGravity().scl(-1));
+        Vector2 v = new Vector2(player.getVelocity());
+        v.scl(-1);
+        player.applyForce(v);
         player.setGoLeft(!player.isGoLeft());
         return false;
     }
