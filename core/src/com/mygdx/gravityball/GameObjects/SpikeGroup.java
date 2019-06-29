@@ -12,14 +12,14 @@ public class SpikeGroup {
     private float y1,y2;
     private boolean left;
 
-    public SpikeGroup(int numberOfSpikes, Vector2 bottomPos, boolean left, World world){
+    public SpikeGroup(int numberOfSpikes, Vector2 bottomPos,int minHeight, int maxHeight, boolean left, World world){
         spikes = new Spike[numberOfSpikes];
         this.left = left;
         y1 = bottomPos.y;
 
         for (int i = 0; i < spikes.length; i++) {
-            int maxHeight = Math.min(i+1,spikes.length-i);
-            float height = MathUtils.random(1,maxHeight);
+            int max = Math.min(Math.min(i+minHeight,spikes.length-i+minHeight-1),maxHeight);
+            float height = MathUtils.random(minHeight,max);
             height*=0.6f;
             if (!left) height*=-1;
             spikes[i] = new Spike(bottomPos.x,bottomPos.y+Spike.WIDTH_Y/2 + i*Spike.WIDTH_Y,height,world);

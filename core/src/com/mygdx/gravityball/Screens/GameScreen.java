@@ -5,6 +5,7 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
@@ -19,6 +20,8 @@ import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
 import com.mygdx.gravityball.GameObjects.Border;
+import com.mygdx.gravityball.GameObjects.Level;
+import com.mygdx.gravityball.GameObjects.Line;
 import com.mygdx.gravityball.GameObjects.Player;
 import com.mygdx.gravityball.GameObjects.Spike;
 import com.mygdx.gravityball.GameObjects.SpikeGroup;
@@ -49,10 +52,22 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
     private Player player;
     private boolean bordering = false;
+    private Line line;
+
+
+    //Level
+    private Level[] levels = {
+            new Level(100,Color.CYAN,Color.PINK,20,5,15,3,5,50),
+            new Level(100,Color.BLUE,Color.GOLD,20,1,1,1,1,5),
+            new Level(100,Color.FOREST,Color.WHITE,50,5,15,1,3,50)};
+    private int curl = 0;
+
+
+
+
 
     private float meters = 0;
-    private final float METERS_TO_SCORE = 0.1f;
-    private float maxSpeed = 20;
+    private final float METERS_TO_SCORE = 1f; //TODO: 0.1f
 
     private Border borderLeft;
     private Border borderRight;
@@ -85,8 +100,8 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         player = new Player(WORLD_WIDTH/2,PLAYER_FLOATING_HEIGHT, MenuScreen.PLAYER_INIT_SIZE/2, PLAYER_SIZE, world); //TODO: set height dynamicaly
         borderLeft = new Border(world,new Vector2(0,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*4));
         borderRight = new Border(world,new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*4));
-
-        spikeGroups.add(new SpikeGroup(5,new Vector2(BORDER_WIDTH,50),true,world));
+        line = new Line(0.1f);
+        line.setNew(new Vector2(0,(PLAYER_FLOATING_HEIGHT+100)/METERS_TO_SCORE),new Vector2(WORLD_WIDTH,(PLAYER_FLOATING_HEIGHT+100)/METERS_TO_SCORE), Color.WHITE);
 
         startTime = TimeUtils.millis();
 
@@ -104,13 +119,16 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
 
-        shapeRenderer.setColor(1,1,1,1);
+        shapeRenderer.setColor(levels[curl].levelColor);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
+        line.draw(shapeRenderer);
         borderLeft.draw(shapeRenderer);
-        borderRight.draw(shapeRenderer);
-        for(SpikeGroup group : spikeGroups){
-            group.draw(shapeRenderer);
-        }
+            borderRight.draw(shapeRenderer);
+            for(SpikeGroup group : spikeGroups){
+                group.draw(shapeRenderer);
+            }
+
+        shapeRenderer.setColor(levels[curl].playerColor);
         player.draw(shapeRenderer);
         shapeRenderer.end();
         hud.stage.draw();
@@ -118,8 +136,10 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
     private void update(float delta){
         Gdx.app.log("fps",Gdx.graphics.getFramesPerSecond()+"");
+
+        //PHYSICS
         meters = (player.getPos().y - PLAYER_FLOATING_HEIGHT);
-        maxSpeed = 40-5000/(meters +200);
+        //maxSpeed = 40-5000/(meters +200); //TODO
         Vector2 dir = player.getVelocity();
         dir.scl(-1);
         Vector2 vel = new Vector2(dir);
@@ -128,7 +148,11 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         vel.add(dir);
 
         vel.scl(1,0.6f);
+        if(bordering) player.applyForce(new Vector2(0,Math.abs(levels[curl].maxSpeed/(player.getVelocity().y +1))));
+        //if(player.getVelocity().len() < 0.5f) lost();
 
+
+        //STARTANIMATION
         float x = (TimeUtils.timeSinceMillis(startTime) / 1000f);
         float startAnimationOffset = 0f;
         if(x< ANIMATION_LENGTH) {
@@ -144,24 +168,29 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
             }
         }
 
-        int orientation = 0;
-        if(Gdx.input.isPeripheralAvailable(Input.Peripheral.Accelerometer)){
-            orientation = Gdx.input.getRotation();
-        }
+
+        //SCORE
         hud.setScore(METERS_TO_SCORE*meters);
-        hud.setOrientation(orientation);
+        hud.setOrientation(0); //TODO: set ORIENTATION
         hud.update();
 
-        if(bordering) player.applyForce(new Vector2(0,Math.abs(maxSpeed/(player.getVelocity().y +1))));
-        //if(player.getVelocity().len() < 0.5f) lost();
-
+        //UPDATE WORLD
         world.step(delta,6,2);
         setBorderUp();
-
         player.syncSpriteToBody();
         borderRight.syncSpriteToBody();
         borderLeft.syncSpriteToBody();
 
+        //LEVEL STUFF
+        if(line.getY()+PLAYER_FLOATING_HEIGHT-player.getPos().y<WORLD_BOTTOM-1){
+            line.setNew(new Vector2(0,(line.getY()+100)/METERS_TO_SCORE),new Vector2(WORLD_WIDTH,(line.getY()+100)/METERS_TO_SCORE),Color.CYAN);
+            if(curl<levels.length-1) curl++;
+
+        }
+
+
+
+        //SYNC CAMERA TO PLAYER
         camera.position.y = player.getPos().y+PLAYER_FLOATING_HEIGHT - startAnimationOffset;
         camera.update();
         shapeRenderer.setProjectionMatrix(camera.combined);
@@ -175,11 +204,10 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         borderLeft.setVel(vel);
     }
 
-    private float spacingMeters = 10f;
     private float lastSpikes = 0;
     private void spikeSpawn(){
-        if(meters -lastSpikes > spacingMeters){
-            int number = MathUtils.random(1,5);
+        if(meters -lastSpikes > levels[curl].spikeGroupDistance){
+            int number = MathUtils.random(levels[curl].minSpikes,levels[curl].maxSpikes);
             Vector2 bottomPos;
             boolean left;
             if(MathUtils.random(1)==1){
@@ -190,10 +218,8 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
                 left = false;
             }
             if(!areSpikesBetween(bottomPos.y,bottomPos.y+number*Spike.WIDTH_Y,left)){
-                spikeGroups.add(new SpikeGroup(number,bottomPos,left,world));
+                spikeGroups.add(new SpikeGroup(number,bottomPos,levels[curl].minSpikeHeight,levels[curl].maxSpikeHeight,left,world));
                 lastSpikes = meters;
-                //TODO: Remove
-                spacingMeters *= 0.99f;
             }
         }
     }
@@ -231,8 +257,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
 
     private void lost(){
-
-        ((Game)Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) meters));
+        //((Game)Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) meters));
     }
 
     @Override

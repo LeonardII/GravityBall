@@ -55,8 +55,6 @@ public class Player {
     }
 
     public void draw(ShapeRenderer renderer){
-
-        renderer.setColor(1,1,1,1);
         renderer.circle(pos.x,pos.y,radius,100);
     }
 

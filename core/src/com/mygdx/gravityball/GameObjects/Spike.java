@@ -22,7 +22,6 @@ public class Spike {
     }
 
     public void draw(ShapeRenderer renderer){
-        renderer.setColor(Color.WHITE);
         renderer.triangle(body.getPosition().x, body.getPosition().y-WIDTH_Y/2,
                 body.getPosition().x,body.getPosition().y+WIDTH_Y/2,
                 body.getPosition().x+height, body.getPosition().y);

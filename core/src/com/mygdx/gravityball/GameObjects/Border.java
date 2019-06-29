@@ -25,7 +25,6 @@ public class Border {
     }
 
     public void draw(ShapeRenderer shapeRenderer) {
-        shapeRenderer.setColor(1,1,1,1);
         shapeRenderer.rect(pos.x, pos.y, dim.x, dim.y);
     }
 
