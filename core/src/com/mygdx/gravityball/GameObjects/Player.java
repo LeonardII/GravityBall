@@ -16,15 +16,17 @@ import javax.swing.SpringLayout;
 public class Player {
 
     private float radius;
+    private float finalRadius;
     private Vector2 pos;
 
     private Body body;
 
     private boolean goLeft = false;
 
-    public Player(float x, float y, float radius, World world){
+    public Player(float x, float y,float initRadius, float radius, World world){
         pos = new Vector2(x, y);
-        this.radius = radius;
+        this.radius = initRadius;
+        this.finalRadius = radius;
         createBoc2d(world);
     }
 
@@ -36,7 +38,7 @@ public class Player {
         body.setUserData(this);
 
         CircleShape playerShape = new CircleShape();
-        playerShape.setRadius(radius);
+        playerShape.setRadius(finalRadius);
 
         FixtureDef playerFix = new FixtureDef();
         playerFix.shape = playerShape;
@@ -47,7 +49,7 @@ public class Player {
         Fixture fixture = body.createFixture(playerFix);
         playerShape.dispose();
 
-        body.setLinearVelocity(new Vector2(0,20));
+        body.setLinearVelocity(new Vector2(0,15));
 
         return body;
     }
@@ -91,4 +93,7 @@ public class Player {
         this.goLeft = goLeft;
     }
 
+    public void setRadius(float r) {
+        radius = r;
+    }
 }

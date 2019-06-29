@@ -14,7 +14,9 @@ public class SpikeGroup {
         spikes = new Spike[numberOfSpikes];
 
         for (int i = 0; i < spikes.length; i++) {
-            float height = MathUtils.random(0.5f,3f);
+            int maxHeight = Math.min(i+1,spikes.length-i);
+            float height = MathUtils.random(1,maxHeight);
+            height*=0.6f;
             if (!left) height*=-1;
             spikes[i] = new Spike(bottomPos.x,bottomPos.y+Spike.WIDTH_Y/2 + i*Spike.WIDTH_Y,height,world);
         }
