@@ -59,4 +59,9 @@ public class Hud {
     public void setScore(float score) {
         this.score = (int) score;
     }
+
+    public void setOrientation(int orientation) {
+        Gdx.app.log("orientation",orientation+"");
+        scoreLabel.setRotation(orientation);
+    }
 }

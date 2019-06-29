@@ -2,6 +2,7 @@ package com.mygdx.gravityball.Screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.InputProcessor;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -23,8 +24,9 @@ import com.mygdx.gravityball.GameObjects.Spike;
 import com.mygdx.gravityball.GameObjects.SpikeGroup;
 import com.mygdx.gravityball.Scenes.Hud;
 
-import java.awt.Menu;
 import java.util.ArrayList;
+
+import sun.management.Sensor;
 
 public class GameScreen implements Screen, InputProcessor, ContactListener {
 
@@ -60,6 +62,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     private Vector2 gravity = new Vector2(0,0);
 
     private long startTime;
+    private final float ANIMATION_LENGTH = 1f;
 
 
     @Override
@@ -80,11 +83,14 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         world.setContactListener(this);
 
         player = new Player(WORLD_WIDTH/2,PLAYER_FLOATING_HEIGHT, MenuScreen.PLAYER_INIT_SIZE/2, PLAYER_SIZE, world); //TODO: set height dynamicaly
-        borderLeft = new Border(world,new Vector2(0,WORLD_BOTTOM),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*3));
-        borderRight = new Border(world,new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_BOTTOM),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*3));
+        borderLeft = new Border(world,new Vector2(0,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*4));
+        borderRight = new Border(world,new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*4));
 
         spikeGroups.add(new SpikeGroup(5,new Vector2(BORDER_WIDTH,50),true,world));
+
         startTime = TimeUtils.millis();
+
+
     }
 
     @Override
@@ -111,6 +117,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     }
 
     private void update(float delta){
+        Gdx.app.log("fps",Gdx.graphics.getFramesPerSecond()+"");
         meters = (player.getPos().y - PLAYER_FLOATING_HEIGHT);
         maxSpeed = 40-5000/(meters +200);
         Vector2 dir = player.getVelocity();
@@ -123,8 +130,9 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         vel.scl(1,0.6f);
 
         float x = (TimeUtils.timeSinceMillis(startTime) / 1000f);
-        if(x<0.7f) {
-            coolAnimation(x);
+        float startAnimationOffset = 0f;
+        if(x< ANIMATION_LENGTH) {
+            startAnimationOffset = coolAnimation(x, ANIMATION_LENGTH);
         }else{
             //Drag Player
             player.applyForce(vel);
@@ -136,7 +144,12 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
             }
         }
 
+        int orientation = 0;
+        if(Gdx.input.isPeripheralAvailable(Input.Peripheral.Accelerometer)){
+            orientation = Gdx.input.getRotation();
+        }
         hud.setScore(METERS_TO_SCORE*meters);
+        hud.setOrientation(orientation);
         hud.update();
 
         if(bordering) player.applyForce(new Vector2(0,Math.abs(maxSpeed/(player.getVelocity().y +1))));
@@ -149,7 +162,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         borderRight.syncSpriteToBody();
         borderLeft.syncSpriteToBody();
 
-        camera.position.y = player.getPos().y+PLAYER_FLOATING_HEIGHT;
+        camera.position.y = player.getPos().y+PLAYER_FLOATING_HEIGHT - startAnimationOffset;
         camera.update();
         shapeRenderer.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(hud.stage.getCamera().combined);
@@ -162,7 +175,6 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         borderLeft.setVel(vel);
     }
 
-    //TODO: must not depend on time, instead on length
     private float spacingMeters = 10f;
     private float lastSpikes = 0;
     private void spikeSpawn(){
@@ -177,17 +189,46 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
                 bottomPos = new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_HEIGHT*3+player.getPos().y);
                 left = false;
             }
-            spikeGroups.add(new SpikeGroup(number,bottomPos,left,world));
-            spacingMeters *=0.99f;
-            lastSpikes = meters;
+            if(!areSpikesBetween(bottomPos.y,bottomPos.y+number*Spike.WIDTH_Y,left)){
+                spikeGroups.add(new SpikeGroup(number,bottomPos,left,world));
+                lastSpikes = meters;
+                //TODO: Remove
+                spacingMeters *= 0.99f;
+            }
         }
     }
 
-    public void coolAnimation(float x){
-        player.setRadius(((PLAYER_SIZE-MenuScreen.PLAYER_INIT_SIZE/2)/0.7f)*x+MenuScreen.PLAYER_INIT_SIZE/2);
-        float y = -(-x)*(2-x)*(2-x);
-        camera.translate(0,y*100);
+    private boolean areSpikesBetween(float y1, float y2, boolean left){
+        if(y1 < y2){
+            y1 -= player.getRadius()*3;
+            y2 += player.getRadius()*3;
+        }else
+            Gdx.app.exit();
+        
+        for(SpikeGroup g: spikeGroups){
+            float x1 = g.getY1();
+            float x2 = g.getY2();
+            if( //g.isLeft() == left &&
+                ((x1 >= y1 && x1 <= y2) ||
+                (x2 >= y1 && x2 <= y2) ||
+                (y1 >= x1 && y1 <= x2) ||
+                (y2 >= x1 && y2 <= x2))){
+                return true;
+            }
+         }
+         return false;
     }
+
+    public float coolAnimation(float x, float animationLength){
+        player.setRadius(((PLAYER_SIZE-MenuScreen.PLAYER_INIT_SIZE/2)/animationLength)*x+MenuScreen.PLAYER_INIT_SIZE/2);
+
+        float SH = GameScreen.WORLD_HEIGHT - PLAYER_FLOATING_HEIGHT;
+
+        x/=animationLength;
+
+        return  SH - 48.3584f*x + 83.45865f*x*x - 40.10025f*x*x*x;
+    }
+
 
     private void lost(){
 

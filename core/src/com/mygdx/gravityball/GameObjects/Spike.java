@@ -12,7 +12,7 @@ import com.badlogic.gdx.physics.box2d.World;
 
 public class Spike {
     float height; //pos if left, and negative if right
-    final static float WIDTH_Y = 1;
+    public final static float WIDTH_Y = 1;
 
     private Body body;
 
