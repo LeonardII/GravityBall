@@ -15,7 +15,9 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.physics.box2d.Contact;
 import com.badlogic.gdx.physics.box2d.ContactImpulse;
 import com.badlogic.gdx.physics.box2d.ContactListener;
+import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.Manifold;
+import com.badlogic.gdx.physics.box2d.RayCastCallback;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -77,6 +79,8 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     private Vector2 gravity = new Vector2(0,0);
 
     private long startTime;
+    private long screenShakeX = 0;
+    private float shakeAmp = 0;
     private final float ANIMATION_LENGTH = 1f;
 
 
@@ -98,13 +102,12 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         world.setContactListener(this);
 
         player = new Player(WORLD_WIDTH/2,PLAYER_FLOATING_HEIGHT, MenuScreen.PLAYER_INIT_SIZE/2, PLAYER_SIZE, world); //TODO: set height dynamicaly
-        borderLeft = new Border(world,new Vector2(0,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*4));
-        borderRight = new Border(world,new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH,WORLD_HEIGHT*4));
+        borderLeft = new Border(world,new Vector2(-0.5f,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH+0.5f,WORLD_HEIGHT*4));
+        borderRight = new Border(world,new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH+0.5f,WORLD_HEIGHT*4));
         line = new Line(0.1f);
         line.setNew(new Vector2(0,(PLAYER_FLOATING_HEIGHT+100)/METERS_TO_SCORE),new Vector2(WORLD_WIDTH,(PLAYER_FLOATING_HEIGHT+100)/METERS_TO_SCORE), Color.WHITE);
 
         startTime = TimeUtils.millis();
-
 
     }
 
@@ -148,7 +151,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         vel.add(dir);
 
         vel.scl(1,0.6f);
-        if(bordering) player.applyForce(new Vector2(0,Math.abs(levels[curl].maxSpeed/(player.getVelocity().y +1))));
+        if(bordering && !player.isDead()) player.applyForce(new Vector2(0,Math.abs(levels[curl].maxSpeed/(player.getVelocity().y +1))));
         //if(player.getVelocity().len() < 0.5f) lost();
 
 
@@ -192,6 +195,8 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
         //SYNC CAMERA TO PLAYER
         camera.position.y = player.getPos().y+PLAYER_FLOATING_HEIGHT - startAnimationOffset;
+        float shake = 0;//shakeAmp / (float) Math.pow((0.002f*(TimeUtils.millis()-screenShakeX)+0.5),2);
+        camera.position.x = camera.viewportWidth / 2 + shake;
         camera.update();
         shapeRenderer.setProjectionMatrix(camera.combined);
         batch.setProjectionMatrix(hud.stage.getCamera().combined);
@@ -257,7 +262,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
 
     private void lost(){
-        //((Game)Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) meters));
+        player.die(world);
     }
 
     @Override
@@ -308,8 +313,12 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         Vector2 v = new Vector2(player.getVelocity());
         v.scl(-1);
         v.y = 0;
-        player.applyForce(v);
-        player.setGoLeft(!player.isGoLeft());
+        if(!player.isDead()){
+            player.applyForce(v);
+            player.setGoLeft(!player.isGoLeft());
+        }else{
+            ((Game)Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) meters));
+        }
         return false;
     }
 
@@ -339,6 +348,10 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         Object b = contact.getFixtureB().getBody().getUserData();
         if((a instanceof Player && b instanceof Border) || (b instanceof Player && a instanceof Border)){
             bordering = true;
+            screenShakeX = TimeUtils.millis();
+            shakeAmp = (float) Math.pow(player.getVelocity().x,2)* (Math.signum(player.getVelocity().x)) * -0.01f / 900f;
+
+            Gdx.app.log("beginContact","now");
         }
 
         if((a instanceof Player && b instanceof Spike) || (b instanceof Player && a instanceof Spike)){
@@ -364,4 +377,5 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     public void postSolve(Contact contact, ContactImpulse impulse) {
 
     }
+
 }

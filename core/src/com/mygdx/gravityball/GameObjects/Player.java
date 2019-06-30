@@ -9,7 +9,10 @@ import com.badlogic.gdx.physics.box2d.BodyDef;
 import com.badlogic.gdx.physics.box2d.CircleShape;
 import com.badlogic.gdx.physics.box2d.Fixture;
 import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.Shape;
 import com.badlogic.gdx.physics.box2d.World;
+import com.badlogic.gdx.utils.Array;
 
 import javax.swing.SpringLayout;
 
@@ -20,8 +23,11 @@ public class Player {
     private Vector2 pos;
 
     private Body body;
+    private Fixture fixture;
+
 
     private boolean goLeft = false;
+    private boolean dead = false;
 
     public Player(float x, float y,float initRadius, float radius, World world){
         pos = new Vector2(x, y);
@@ -46,7 +52,7 @@ public class Player {
         playerFix.restitution = 0f;//0.2f;
         playerFix.friction = 0f;
 
-        Fixture fixture = body.createFixture(playerFix);
+        fixture = body.createFixture(playerFix);
         playerShape.dispose();
 
         body.setLinearVelocity(new Vector2(0,15));
@@ -75,7 +81,6 @@ public class Player {
         return radius;
     }
     public void applyForce(Vector2 f){
-        Gdx.app.log("Contact2",f.toString());
         body.applyForceToCenter(f,true);
     }
 
@@ -93,5 +98,38 @@ public class Player {
 
     public void setRadius(float r) {
         radius = r;
+    }
+
+    public boolean isDead() {
+        return dead;
+    }
+
+    public void die(World world){
+        dead = true;
+
+        /*BodyDef playerDef = new BodyDef();
+        playerDef.type = BodyDef.BodyType.DynamicBody;
+        playerDef.position.set(pos);
+        Body b = world.createBody(playerDef);
+        b.setUserData(this);
+
+        PolygonShape shape = new PolygonShape();
+        shape.set(new Vector2[]{new Vector2(1,0),new Vector2(0,0),new Vector2(0,1)});
+
+        FixtureDef playerFix = new FixtureDef();
+        playerFix.shape = shape;
+        playerFix.density = 0.15f;
+        playerFix.restitution = 0f;//0.2f;
+        playerFix.friction = 0f;
+
+        Fixture fixture = b.createFixture(playerFix);
+        shape.dispose();
+
+        deadBodies.add(b);*/
+
+    }
+
+    public void setDead(boolean dead) {
+        this.dead = dead;
     }
 }
