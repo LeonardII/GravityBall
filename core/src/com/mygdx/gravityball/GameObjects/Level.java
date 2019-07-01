@@ -12,9 +12,10 @@ public class Level {
     public int maxSpikeHeight;
     public int minSpikeHeight;
     public float spikeGroupDistance;
+    public int sendoffLength;
 
     public Level(float length, Color levelColor, Color playerColor, float maxSpeed, int minSpikes, int maxSpikes,
-                 int minSpikeHeight, int maxSpikeHeight, float spikeGroupDistance) {
+                 int minSpikeHeight, int maxSpikeHeight, float spikeGroupDistance, int sendoffLength) {
         this.length = length;
         this.levelColor = levelColor;
         this.playerColor = playerColor;
@@ -24,5 +25,6 @@ public class Level {
         this.minSpikeHeight = minSpikeHeight;
         this.maxSpikeHeight = maxSpikeHeight;
         this.spikeGroupDistance = spikeGroupDistance;
+        this.sendoffLength = sendoffLength;
     }
 }

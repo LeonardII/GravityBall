@@ -10,9 +10,11 @@ public class Line {
     private Vector2 pointRight = new Vector2(0,0);
     private float width;
     private Color color = Color.BLACK;
+    private int levelIndex = 0;
 
     public Line(float width){
         this.width = width;
+        levelIndex = 0;
     }
 
     public void setNew(Vector2 left, Vector2 right, Color c){
@@ -29,6 +31,10 @@ public class Line {
 
     public float getY(){
         return pointLeft.y;
+    }
+    public int getLevelIndex() { return levelIndex; }
+    public void setLevelIndex(int levelIndex) {
+        this.levelIndex = levelIndex;
     }
 
 }
