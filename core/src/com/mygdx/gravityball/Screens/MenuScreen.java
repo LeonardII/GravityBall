@@ -2,6 +2,7 @@ package com.mygdx.gravityball.Screens;
 
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.GL20;
@@ -47,20 +48,32 @@ public class MenuScreen implements Screen {
     BitmapFont font;
     Skin skin;
     TextureAtlas buttonAtlas;
+    Preferences prefs;
 
 
     int highscore;
 
     public MenuScreen()
     {
-        highscore = 0;
-        init();
+        init(0);
     }
-    public MenuScreen(int highscore){
-        this.highscore = highscore;
-        init();
+    public MenuScreen(int score){
+        init(score);
     }
-    private void init(){
+    private void init(int score){
+        prefs = Gdx.app.getPreferences("game preferences");
+        if(prefs.contains("highscore")) {
+            if (prefs.getInteger("highscore") < score) {
+                prefs.putInteger("highscore", score);
+                prefs.flush();
+                this.highscore = score;
+            } else {
+                this.highscore = prefs.getInteger("highscore");
+            }
+        }else{
+            prefs.putInteger("highscore", score);
+        }
+
         batch = new SpriteBatch();
         shapeRenderer = new ShapeRenderer();
         camera = new OrthographicCamera();

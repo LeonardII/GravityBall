@@ -60,8 +60,8 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
     //Level
     private Level[] levels = {
-            new Level(100,Color.WHITE,Color.WHITE,20,1,8,1,5,30, 4),
-            new Level(100,Color.CYAN,Color.PINK,25,5,15,3,5,50, 10), //TODO: Beginn easy, get hard
+            new Level(100,Color.WHITE,Color.WHITE,20,1,8,1,5,20, 4),
+            new Level(100,Color.CYAN,Color.PINK,25,5,15,3,5,30, 10), //TODO: Beginn easy, get hard
             new Level(100,Color.BLUE,Color.GOLD,30,1,1,1,1,5,10),
             new Level(100,Color.FOREST,Color.WHITE,40,5,15,1,3,50,20),
             new Level(100,Color.LIGHT_GRAY,Color.DARK_GRAY,30,1,5,1,3,10,15),
