@@ -10,8 +10,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeTypeFontGenerator;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
+import com.badlogic.gdx.scenes.scene2d.Group;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
@@ -38,6 +40,7 @@ public class MenuScreen implements Screen {
     Image title;
     public final static float PLAYER_INIT_SIZE = 3f;
     Image menuPlaer;
+    Label highScoreLabel;
     TextButton playButton;
 
     TextButton.TextButtonStyle textButtonStyle;
@@ -83,8 +86,23 @@ public class MenuScreen implements Screen {
         mainTable.top();
 
         title = new Image(new Texture(Gdx.files.internal("title.png")));
-        title.setScaling(Scaling.fit);
+        title.setScaling(Scaling.fillX);
         title.setAlign(Align.top);
+
+        BitmapFont font;
+
+        FreeTypeFontGenerator generator = new FreeTypeFontGenerator(Gdx.files.internal("ostrich-regular.ttf"));
+        FreeTypeFontGenerator.FreeTypeFontParameter parameter = new FreeTypeFontGenerator.FreeTypeFontParameter();
+        parameter.size = 200;
+        font = generator.generateFont(parameter);
+        generator.dispose();
+        highScoreLabel = new Label("highscore: "+highscore, new Label.LabelStyle(font, Color.WHITE));
+        Group group = new Group();
+        group.addActor(highScoreLabel);
+        group.setScale(0.004f);
+
+
+
 
         menuPlaer = new Image(new Texture(Gdx.files.internal("menuPlayer.png")));
         menuPlaer.setSize(PLAYER_INIT_SIZE,PLAYER_INIT_SIZE);
@@ -114,8 +132,9 @@ public class MenuScreen implements Screen {
         });
 
         mainTable.padTop(2);
-        mainTable.add(title);
+        mainTable.add(title).height(4f).padBottom(1);
         mainTable.row();
+        mainTable.add(group).width(4).padRight(3).padLeft(3);
 
         //Add table to stage
         stage.addActor(mainTable);
