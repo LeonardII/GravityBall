@@ -60,12 +60,12 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
     //Level
     private Level[] levels = {
-            new Level(100,Color.WHITE,Color.WHITE,20,1,8,1,5,20, 4),
-            new Level(100,Color.CYAN,Color.PINK,25,5,15,3,5,30, 10), //TODO: Beginn easy, get hard
-            new Level(100,Color.BLUE,Color.GOLD,30,1,1,1,1,5,10),
-            new Level(100,Color.FOREST,Color.WHITE,40,5,15,1,3,50,20),
-            new Level(100,Color.LIGHT_GRAY,Color.DARK_GRAY,30,1,5,1,3,10,15),
-            new Level(100,Color.WHITE,Color.BROWN,30,1,6,1,4,10,15)
+            new Level(300,Color.WHITE,Color.WHITE,20,1,8,1,5,20, 4),
+            new Level(300,Color.CYAN,Color.PINK,25,5,15,3,5,30, 10), //TODO: Beginn easy, get hard
+            new Level(300,Color.BLUE,Color.GOLD,30,1,1,1,1,5,10),
+            new Level(300,Color.FOREST,Color.WHITE,40,5,15,1,3,50,20),
+            new Level(300,Color.LIGHT_GRAY,Color.DARK_GRAY,30,1,5,1,3,10,15),
+            new Level(300,Color.WHITE,Color.BROWN,30,1,6,1,4,10,15)
     };
     private int curl = 0;
 
@@ -110,7 +110,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         borderLeft = new Border(world,new Vector2(-0.5f,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH+0.5f,WORLD_HEIGHT*4));
         borderRight = new Border(world,new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH+0.5f,WORLD_HEIGHT*4));
         line = new Line(0.1f);
-        line.setNew(new Vector2(0,(PLAYER_FLOATING_HEIGHT+100)/METERS_TO_SCORE),new Vector2(WORLD_WIDTH,(PLAYER_FLOATING_HEIGHT+100)/METERS_TO_SCORE), levels[1].levelColor);
+        line.setNew(new Vector2(0,(PLAYER_FLOATING_HEIGHT+levels[curl].length)/METERS_TO_SCORE),new Vector2(WORLD_WIDTH,(PLAYER_FLOATING_HEIGHT+levels[curl].length)/METERS_TO_SCORE), levels[1].levelColor);
 
         startTime = TimeUtils.millis();
 
@@ -141,15 +141,18 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         shapeRenderer.end();
         hud.stage.draw();
     }
-
+    boolean initGrav = false;
     private void update(float delta){
         Gdx.app.log("fps",Gdx.graphics.getFramesPerSecond()+"");
 
         //PHYSICS
         meters = (player.getPos().y - PLAYER_FLOATING_HEIGHT);
+        Gdx.app.log("physics",player.getVelocity().toString());
         //maxSpeed = 40-5000/(meters +200); //TODO
-        float dragForce = player.getVelocity().y > 0 ?
-                -0.02f*player.getVelocity().y-0.32f : 0;
+        Vector2 v = player.getVelocity().cpy();
+        Vector2 dragForce = player.getVelocity().y > 0 ?
+                v.scl(-0.02f + (-0.32f / v.len())) : new Vector2(0,0);
+        dragForce.scl(0.2f,1);
 
         if(bordering && !player.isDead()) player.applyForce(new Vector2(0,Math.abs(levels[curl].maxSpeed/(player.getVelocity().y +1))));
         //if(player.getVelocity().len() < 0.5f) lost();
@@ -161,13 +164,21 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         if(x< ANIMATION_LENGTH) {
             startAnimationOffset = coolAnimation(x, ANIMATION_LENGTH);
         }else{
+            if(!initGrav){
+                initGrav=true; int i = MathUtils.randomSign();
+                if(i==1)player.setGoLeft(true); else player.setGoLeft(false);
+                player.applyForce(new Vector2(30f,0f).scl(i));
+            }
             //Drag Player
-            player.applyForce(new Vector2(0, dragForce));
+            player.applyForce(dragForce);
             //Gravity
+            float gravity = 0.05f * (float) (Math.log(Math.abs(player.getVelocity().x)+1f) +10) * player.getVelocity().y;
             if(player.isGoLeft()){
-                player.applyForce( new Vector2(-1f,0).scl(player.getVelocity().y * 0.23f));
+                //player.setVelocityX(-gravity);
+                //player.applyForce( new Vector2(-gravity,0));
             }else {
-                player.applyForce(new Vector2(1f, 0).scl(player.getVelocity().y * 0.23f));
+                //player.setVelocityX(gravity);
+                //player.applyForce(new Vector2(gravity, 0));
             }
         }
 
@@ -191,7 +202,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         }
         //line out the bottom
         if(line.getY()+PLAYER_FLOATING_HEIGHT-player.getPos().y<WORLD_BOTTOM-1 && curl < levels.length-1){
-            line.setNew(new Vector2(0,(line.getY()+100)/METERS_TO_SCORE),new Vector2(WORLD_WIDTH,(line.getY()+100)/METERS_TO_SCORE),levels[curl+1].levelColor);
+            line.setNew(new Vector2(0,(line.getY()+levels[curl].length)/METERS_TO_SCORE),new Vector2(WORLD_WIDTH,(line.getY()+levels[curl].length)/METERS_TO_SCORE),levels[curl+1].levelColor);
             line.setLevelIndex(curl);
             createSendOff();
         }
@@ -326,11 +337,12 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
         //world.setGravity(world.getGravity().scl(-1));
-        Vector2 v = new Vector2(player.getVelocity());
-        v.scl(-1);
-        v.y = 0;
+        player.scaleVelocityX(0.05f);
+        float speed = player.getVelocity().y;
+        float dir = player.isGoLeft() ? -1 : 1;
+
         if(!player.isDead()){
-            player.applyForce(v);
+            player.applyForce(new Vector2(4.0f * dir * speed,0));
             player.setGoLeft(!player.isGoLeft());
         }else{
             ((Game)Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) meters));

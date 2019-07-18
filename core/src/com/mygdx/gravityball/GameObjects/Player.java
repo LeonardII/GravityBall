@@ -84,6 +84,10 @@ public class Player {
         body.applyForceToCenter(f,true);
     }
 
+    public void scaleVelocityX(float x){
+        body.setLinearVelocity(body.getLinearVelocity().x*x,body.getLinearVelocity().y);
+    }
+
     public Vector2 getVelocity() {
         return body.getLinearVelocity();
     }
