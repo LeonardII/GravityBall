@@ -60,12 +60,12 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
     //Level
     private Level[] levels = {
-            new Level(300,Color.WHITE,Color.WHITE,20,1,8,1,5,20, 4),
-            new Level(300,Color.CYAN,Color.PINK,25,5,15,3,5,30, 10), //TODO: Beginn easy, get hard
-            new Level(300,Color.BLUE,Color.GOLD,30,1,1,1,1,5,10),
-            new Level(300,Color.FOREST,Color.WHITE,40,5,15,1,3,50,20),
-            new Level(300,Color.LIGHT_GRAY,Color.DARK_GRAY,30,1,5,1,3,10,15),
-            new Level(300,Color.WHITE,Color.BROWN,30,1,6,1,4,10,15)
+            new Level(300,Color.WHITE,Color.WHITE,20,1,8,1,5,20, 2),
+            new Level(300,Color.CYAN,Color.PINK,25,5,15,3,5,30, 4), //TODO: Beginn easy, get hard
+            new Level(300,Color.BLUE,Color.GOLD,30,1,1,1,1,5,6),
+            new Level(300,Color.FOREST,Color.WHITE,40,5,15,1,3,50,8),
+            new Level(300,Color.LIGHT_GRAY,Color.DARK_GRAY,45,1,5,1,3,10,10),
+            new Level(300,Color.WHITE,Color.BROWN,50,1,6,1,4,10,12)
     };
     private int curl = 0;
 
@@ -137,7 +137,9 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
             }
 
         shapeRenderer.setColor(levels[curl].playerColor);
-        player.draw(shapeRenderer);
+        if(!player.isDead()){
+            player.draw(shapeRenderer);
+        }
         shapeRenderer.end();
         hud.stage.draw();
     }
@@ -151,7 +153,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         //maxSpeed = 40-5000/(meters +200); //TODO
         Vector2 v = player.getVelocity().cpy();
         Vector2 dragForce = player.getVelocity().y > 0 ?
-                v.scl(-0.02f + (-0.32f / v.len())) : new Vector2(0,0);
+                v.scl(-0.03f + (-0.01f / v.len())) : new Vector2(0,0);
         dragForce.scl(0.2f,1);
 
         if(bordering && !player.isDead()) player.applyForce(new Vector2(0,Math.abs(levels[curl].maxSpeed/(player.getVelocity().y +1))));
@@ -166,19 +168,19 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         }else{
             if(!initGrav){
                 initGrav=true; int i = MathUtils.randomSign();
-                if(i==1)player.setGoLeft(true); else player.setGoLeft(false);
-                player.applyForce(new Vector2(30f,0f).scl(i));
+                if(i==1)player.setGoLeft(false); else player.setGoLeft(true);
+                player.applyForce(new Vector2(100f,0f).scl(i));
             }
             //Drag Player
             player.applyForce(dragForce);
             //Gravity
-            float gravity = 0.05f * (float) (Math.log(Math.abs(player.getVelocity().x)+1f) +10) * player.getVelocity().y;
+            float gravity = 0.024f * (float) (Math.log(Math.abs(player.getVelocity().x)+1f) +10) * player.getVelocity().y;
             if(player.isGoLeft()){
                 //player.setVelocityX(-gravity);
-                //player.applyForce( new Vector2(-gravity,0));
+                player.applyForce( new Vector2(-gravity,0));
             }else {
                 //player.setVelocityX(gravity);
-                //player.applyForce(new Vector2(gravity, 0));
+                player.applyForce(new Vector2(gravity, 0));
             }
         }
 
@@ -337,16 +339,17 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
         //world.setGravity(world.getGravity().scl(-1));
-        player.scaleVelocityX(0.05f);
-        float speed = player.getVelocity().y;
+        player.scaleVelocityX(0.5f);
+        float speed = player.getVelocity().len();
         float dir = player.isGoLeft() ? -1 : 1;
 
-        if(!player.isDead()){
-            player.applyForce(new Vector2(4.0f * dir * speed,0));
+        if (!player.isDead()) {
+            player.applyForce(new Vector2(1.0f * dir * (speed + 10), 0));
             player.setGoLeft(!player.isGoLeft());
-        }else{
-            ((Game)Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) meters));
+        } else {
+            ((Game) Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) meters));
         }
+
         return false;
     }
 

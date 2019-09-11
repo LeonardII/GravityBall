@@ -110,26 +110,25 @@ public class Player {
 
     public void die(World world){
         dead = true;
-
-        /*BodyDef playerDef = new BodyDef();
+        body.setLinearVelocity(0,0);
+/*
+        BodyDef playerDef = new BodyDef();
         playerDef.type = BodyDef.BodyType.DynamicBody;
         playerDef.position.set(pos);
-        Body b = world.createBody(playerDef);
-        b.setUserData(this);
+        body = world.createBody(playerDef);
+        body.setUserData(this);
 
-        PolygonShape shape = new PolygonShape();
-        shape.set(new Vector2[]{new Vector2(1,0),new Vector2(0,0),new Vector2(0,1)});
+        CircleShape playerShape = new CircleShape();
+        playerShape.setRadius(finalRadius);
 
         FixtureDef playerFix = new FixtureDef();
-        playerFix.shape = shape;
+        playerFix.shape = playerShape;
         playerFix.density = 0.15f;
         playerFix.restitution = 0f;//0.2f;
         playerFix.friction = 0f;
 
-        Fixture fixture = b.createFixture(playerFix);
-        shape.dispose();
-
-        deadBodies.add(b);*/
+        fixture = body.createFixture(playerFix);
+        playerShape.dispose();*/
 
     }
 
