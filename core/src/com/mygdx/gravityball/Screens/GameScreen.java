@@ -21,6 +21,7 @@ import com.badlogic.gdx.physics.box2d.RayCastCallback;
 import com.badlogic.gdx.physics.box2d.World;
 import com.badlogic.gdx.utils.TimeUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
+import com.mygdx.gravityball.GameObjects.BlackPlague;
 import com.mygdx.gravityball.GameObjects.Border;
 import com.mygdx.gravityball.GameObjects.Level;
 import com.mygdx.gravityball.GameObjects.Line;
@@ -56,6 +57,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     private Player player;
     private boolean bordering = false;
     private Line line;
+    private BlackPlague blackPlague;
 
 
     //Level
@@ -68,10 +70,6 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
             new Level(300,Color.WHITE,Color.BROWN,50,1,6,1,4,10,12)
     };
     private int curl = 0;
-
-
-
-
 
     private float meters = 0;
     private final float METERS_TO_SCORE = 1f; //TODO: 0.1f
@@ -111,6 +109,7 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         borderRight = new Border(world,new Vector2(WORLD_WIDTH-BORDER_WIDTH,WORLD_BOTTOM-WORLD_HEIGHT),new Vector2(BORDER_WIDTH+0.5f,WORLD_HEIGHT*4));
         line = new Line(0.1f);
         line.setNew(new Vector2(0,(PLAYER_FLOATING_HEIGHT+levels[curl].length)/METERS_TO_SCORE),new Vector2(WORLD_WIDTH,(PLAYER_FLOATING_HEIGHT+levels[curl].length)/METERS_TO_SCORE), levels[1].levelColor);
+        blackPlague = new BlackPlague(world,10);
 
         startTime = TimeUtils.millis();
 
@@ -131,10 +130,11 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
         line.draw(shapeRenderer);
         shapeRenderer.setColor(levels[curl].levelColor);
         borderLeft.draw(shapeRenderer);
-            borderRight.draw(shapeRenderer);
-            for(SpikeGroup group : spikeGroups){
-                group.draw(shapeRenderer);
-            }
+        borderRight.draw(shapeRenderer);
+        for(SpikeGroup group : spikeGroups){
+            group.draw(shapeRenderer);
+        }
+        blackPlague.draw(shapeRenderer);
 
         shapeRenderer.setColor(levels[curl].playerColor);
         if(!player.isDead()){
@@ -174,7 +174,11 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
             //Drag Player
             player.applyForce(dragForce);
             //Gravity
-            float gravity = 0.024f * (float) (Math.log(Math.abs(player.getVelocity().x)+1f) +10) * player.getVelocity().y;
+            float gravity = 0.018f * (float) (Math.log(Math.abs(player.getVelocity().x)+1f) +10) * player.getVelocity().y;
+            if (player.isGoLeft() && player.getVelocity().x > 0
+                    || !player.isGoLeft() && player.getVelocity().x < 0){
+                gravity*=2;
+            }
             if(player.isGoLeft()){
                 //player.setVelocityX(-gravity);
                 player.applyForce( new Vector2(-gravity,0));
@@ -223,8 +227,8 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
 
     private void createSendOff() {
         float bottomPos = line.getY()-levels[curl].sendoffLength*Spike.WIDTH_Y;
-        spikeGroups.add(new SpikeGroup(levels[curl].sendoffLength, new Vector2(BORDER_WIDTH,bottomPos),1,1, true,world));
-        spikeGroups.add(new SpikeGroup(levels[curl].sendoffLength, new Vector2(WORLD_WIDTH-BORDER_WIDTH,bottomPos),1,1, false,world));
+        spikeGroups.add(new SpikeGroup(levels[curl].sendoffLength, new Vector2(BORDER_WIDTH,bottomPos),1,1, true, world));
+        spikeGroups.add(new SpikeGroup(levels[curl].sendoffLength, new Vector2(WORLD_WIDTH-BORDER_WIDTH,bottomPos),1,1, false, world));
     }
 
     private void setBorderUp(){
@@ -339,12 +343,13 @@ public class GameScreen implements Screen, InputProcessor, ContactListener {
     public boolean touchDown(int screenX, int screenY, int pointer, int button) {
 
         //world.setGravity(world.getGravity().scl(-1));
-        player.scaleVelocityX(0.5f);
         float speed = player.getVelocity().len();
-        float dir = player.isGoLeft() ? -1 : 1;
+        float dir = player.isGoLeft() ? 1 : -1;
 
         if (!player.isDead()) {
-            player.applyForce(new Vector2(1.0f * dir * (speed + 10), 0));
+            if(bordering){
+                player.applyForce(new Vector2(15.0f * dir, 0));
+            }
             player.setGoLeft(!player.isGoLeft());
         } else {
             ((Game) Gdx.app.getApplicationListener()).setScreen(new MenuScreen((int) meters));
